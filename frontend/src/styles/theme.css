@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #0F1E18;
+  --bg-2: #0B1712;
+  --panel: #17281F;
+  --panel-2: #1E332A;
+  --line: #2C4438;
+  --line-soft: #233A2F;
+  --text: #EFEBE1;
+  --text-dim: #9FB3A6;
+  --text-faint: #6E8579;
+  --mora: #9B5FA0;
+  --mora-dim: #7C3F82;
+  --mango: #E2891F;
+  --maracuya: #D9B227;
+  --good: #4FA672;
+  --bad: #C4453A;
+  --bad-dim: #8C332B;
+  --accent: #E2891F;
+  --radius: 3px;
+  --font-display: 'Fraunces', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; height: 100%; }
+
+body {
+  background:
+    radial-gradient(ellipse at 15% -10%, rgba(226,137,31,0.07), transparent 45%),
+    radial-gradient(ellipse at 85% 110%, rgba(155,95,160,0.06), transparent 50%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--mango); color: #1a1005; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+button, input, select { font-family: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

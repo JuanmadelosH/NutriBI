@@ -1,50 +1,75 @@
-# Frontend — Persona A
+# React + TypeScript + Vite
 
-## Stack
-React + Vite + Chart.js
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Tareas
+Currently, two official plugins are available:
 
-### Día 1
-- [ ] Inicializar proyecto con Vite (`npm create vite@latest . -- --template react`)
-- [ ] Instalar dependencias: `chart.js`, `react-chartjs-2`
-- [ ] Crear layout base con componentes:
-  - `ChatInput.jsx` — input de texto + botón enviar
-  - `HistorySidebar.jsx` — historial de consultas
-  - `ResultTable.jsx` — tabla de datos
-  - `ResultChart.jsx` — gráfico (Chart.js)
-  - `MetricCard.jsx` — tarjetas de métricas
-- [ ] Maquetar con datos mock (simular respuesta del backend)
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-### Día 2
-- [ ] Conectar al endpoint `POST /api/consulta` con fetch
-- [ ] Renderizar datos reales en tabla
-- [ ] Gráficos dinámicos según los datos
-- [ ] Manejar estados: loading, error, vacío
+## React Compiler
 
-### Día 3
-- [ ] Diseño responsive
-- [ ] Formato de moneda ($) y miles
-- [ ] Loader/Skeleton mientras carga
-- [ ] Mensajes de error amigables
-- [ ] README con captura de pantalla
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Contrato con Backend
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 
 ```
-POST /api/consulta
-{ "pregunta": "texto en español" }
 
-Response:
-{
-  "sql": "SELECT ...",
-  "datos": [ ... ],
-  "respuesta": "explicación en español"
-}
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
 ```
-
-## Endpoints
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| POST | /api/consulta | Enviar pregunta en lenguaje natural |
