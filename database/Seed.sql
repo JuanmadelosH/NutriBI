@@ -1,9 +1,9 @@
 USE nutribi;
 
-INSERT INTO usuarios (id_usuario, nombre, correo, rol, activo) VALUES
-  (1, 'Juan Manuel Herrera', 'juanma@nutricampo.com.co', 'admin', TRUE),
-  (2, 'Luisa Fernanda Ospina', 'luisa@nutricampo.com.co', 'operacion', TRUE),
-  (3, 'Carlos Andres Gomez', 'contador@nutricampo.com.co', 'contador', TRUE);
+INSERT INTO usuarios (id_usuario, nombre, correo, password, rol, activo) VALUES
+  (1, 'Juan Manuel Herrera', 'juanma@nutricampo.com.co', '$2b$10$Vc/cX/toAj2xLhllUAgKZ.Zt4A0i80/ap3iq1037/.6yQmf6NDH3.', 'admin', TRUE),
+  (2, 'Luisa Fernanda Ospina', 'luisa@nutricampo.com.co', '$2b$10$Vc/cX/toAj2xLhllUAgKZ.Zt4A0i80/ap3iq1037/.6yQmf6NDH3.', 'operacion', TRUE),
+  (3, 'Carlos Andres Gomez', 'contador@nutricampo.com.co', '$2b$10$Vc/cX/toAj2xLhllUAgKZ.Zt4A0i80/ap3iq1037/.6yQmf6NDH3.', 'contador', TRUE);
   
 INSERT INTO productos (id_producto, nombre, categoria, presentacion, precio_venta, activo) VALUES
   (1, 'Pulpa de Mango', 'Pulpa congelada', '1 kg', 12000.00, TRUE),

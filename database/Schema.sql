@@ -6,6 +6,7 @@ CREATE TABLE usuarios (
   id_usuario  INT AUTO_INCREMENT PRIMARY KEY,      
   nombre      VARCHAR(80)  NOT NULL,             
   correo      VARCHAR(120) NOT NULL UNIQUE,       
+  password    VARCHAR(255) NOT NULL,              
   rol         ENUM('admin','operacion','contador') NOT NULL DEFAULT 'operacion',
   activo      BOOLEAN NOT NULL DEFAULT TRUE
 ) ENGINE=InnoDB;              -- soporta llaves foraneas                      
