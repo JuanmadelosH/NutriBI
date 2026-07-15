@@ -82,3 +82,22 @@ CREATE TABLE detalle_compras (
   FOREIGN KEY (id_insumo) REFERENCES costos_insumos(id_insumo)
 ) ENGINE=InnoDB;
 
+CREATE TABLE recetas (
+  id_receta   INT AUTO_INCREMENT PRIMARY KEY,
+  id_producto INT NOT NULL,
+  id_insumo   INT NOT NULL,
+  cantidad    DECIMAL(10,2) NOT NULL,
+  FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE,
+  FOREIGN KEY (id_insumo) REFERENCES costos_insumos(id_insumo)
+) ENGINE=InnoDB;
+
+CREATE TABLE historial_consultas (
+  id_consulta  INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario   INT NOT NULL,
+  pregunta     TEXT NOT NULL,
+  sql_generado TEXT,
+  respuesta    TEXT,
+  fecha        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+) ENGINE=InnoDB;
+

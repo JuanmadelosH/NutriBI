@@ -1,23 +1,33 @@
-// Cliente HTTP central. La URL base se toma de la variable de entorno VITE_API_URL
-// (definida en .env — ver .env.example). Así el equipo de backend puede cambiar
-// dónde corre el servidor sin tocar el código del frontend.
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+function getToken() {
+  return localStorage.getItem('token');
+}
 
 async function request(path, options = {}) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}${path}`, { headers, ...options });
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      window.location.reload();
+    }
     let detail = '';
-    try { detail = (await res.json()).message || ''; } catch { /* respuesta sin JSON */ }
-    throw new Error(`Error ${res.status} en ${path}${detail ? ': ' + detail : ''}`);
+    try { detail = (await res.json()).error || ''; } catch { /* respuesta sin JSON */ }
+    throw new Error(detail || `Error ${res.status} en ${path}`);
   }
   if (res.status === 204) return null;
   return res.json();
 }
 
 export const api = {
+  login: (correo, password) =>
+    request('/login', { method: 'POST', body: JSON.stringify({ correo, password }) }),
+
   // ---- catálogos / lectura ----
   getProductos: () => request('/productos'),
   getInsumos: () => request('/insumos'),
@@ -27,6 +37,7 @@ export const api = {
   getVentas: () => request('/ventas'),
   getCompras: () => request('/compras'),
   getKpis: () => request('/kpis'),
+  getVentasPorMes: () => request('/ventas-por-mes'),
   getAlertas: () => request('/alertas'),
   getConsultasIA: () => request('/consultas-ia'),
 
@@ -54,7 +65,7 @@ export const api = {
 
   // ---- asistente IA (RF-11, RF-13) ----
   preguntarAsistente: (pregunta) =>
-    request('/asistente', { method: 'POST', body: JSON.stringify({ pregunta }) }),
+    request('/consulta', { method: 'POST', body: JSON.stringify({ pregunta }) }),
 
   // ---- exportación (RF-14) ----
   exportarVentasUrl: () => `${BASE_URL}/exportar/ventas.csv`,
