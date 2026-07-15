@@ -9,14 +9,8 @@ const PREGUNTAS_RAPIDAS = [
   '¿Cuáles son mis clientes con más ventas?',
 ];
 
-// Contrato esperado de POST /asistente { pregunta }:
-// {
-//   sql: "SELECT ...",
-//   chart: { type: "bar" | "line" | "table", x: "col", y: "col" } | null,
-//   filas: [ {...}, ... ],
-//   explicacion: "texto en lenguaje natural",
-//   advertencia: null | "motivo por el que no se ejecutó (p. ej. no era SELECT)"
-// }
+// Contrato real del backend POST /api/consulta:
+// { sql: "SELECT ...", datos: [{ ... }], respuesta: "texto en lenguaje natural" }
 export default function AsistenteChat({ hayDatos, onNuevaConsulta }) {
   const [mensajes, setMensajes] = useState([]);
   const [input, setInput] = useState('');
@@ -42,7 +36,12 @@ export default function AsistenteChat({ hayDatos, onNuevaConsulta }) {
       const res = await api.preguntarAsistente(pregunta);
       setMensajes((m) => {
         const copia = [...m];
-        copia[copia.length - 1] = { role: 'bot', ...res };
+        copia[copia.length - 1] = {
+          role: 'bot',
+          sql: res.sql,
+          filas: res.datos || [],
+          explicacion: res.respuesta || '',
+        };
         return copia;
       });
       onNuevaConsulta?.();
@@ -80,16 +79,10 @@ export default function AsistenteChat({ hayDatos, onNuevaConsulta }) {
               {m.role === 'bot' && m.text && m.text}
               {m.role === 'bot' && m.sql && (
                 <>
-                  {m.advertencia ? (
-                    <div>{m.advertencia}</div>
-                  ) : (
-                    <>
-                      <div className="sql-label">Consulta SQL generada (RF-13)</div>
-                      <div className="sql-block">{m.sql}</div>
-                      <ResultChart filas={m.filas} chart={m.chart} />
-                      {m.explicacion && <div style={{ marginTop: 10 }}>{m.explicacion}</div>}
-                    </>
-                  )}
+                  <div className="sql-label">Consulta SQL generada (RF-13)</div>
+                  <div className="sql-block">{m.sql}</div>
+                  <ResultChart filas={m.filas} chart={null} />
+                  {m.explicacion && <div style={{ marginTop: 10 }}>{m.explicacion}</div>}
                 </>
               )}
             </div>

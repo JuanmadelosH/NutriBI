@@ -16,12 +16,12 @@ const getById = async (req, res) => {
 };
 
 const crear = async (req, res) => {
-  const { nombre, tipo, unidad, costo_unitario, periodo } = req.body;
-  if (!nombre || !tipo || !unidad || !costo_unitario || !periodo)
-    return res.status(400).json({ error: 'nombre, tipo, unidad, costo_unitario y periodo son requeridos.' });
+  const { nombre, tipo, unidad, costo_unitario } = req.body;
+  if (!nombre || !tipo || !unidad || !costo_unitario)
+    return res.status(400).json({ error: 'nombre, tipo, unidad y costo_unitario son requeridos.' });
   const r = await db.ejecutarConsulta(
-    'INSERT INTO costos_insumos (nombre, tipo, unidad, costo_unitario, periodo) VALUES (?, ?, ?, ?, ?)',
-    [nombre, tipo, unidad, costo_unitario, periodo]
+    'INSERT INTO costos_insumos (nombre, tipo, unidad, costo_unitario, periodo) VALUES (?, ?, ?, ?, CURDATE())',
+    [nombre, tipo, unidad, costo_unitario]
   );
   res.status(201).json({ id_insumo: r.insertId, mensaje: 'Insumo creado.' });
 };

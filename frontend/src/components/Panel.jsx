@@ -3,12 +3,11 @@ import ProductGrid from './ProductGrid';
 import SalesByMonthChart from './charts/SalesByMonthChart';
 import MarginByProductChart from './charts/MarginByProductChart';
 import FruitPriceChart from './charts/FruitPriceChart';
-import { computeKpis, computeVentasPorMes, computeInsumosFruta, withCostoReal } from '../utils/metrics';
+import { computeKpis, computeInsumosFruta, withCostoReal } from '../utils/metrics';
 
 export default function Panel({ data }) {
-  const { ventas, productos, insumos, recetas, preciosInsumo } = data;
+  const { ventas, productos, insumos, recetas, preciosInsumo, ventasPorMes } = data;
   const kpis = computeKpis(ventas, productos, recetas, insumos, preciosInsumo);
-  const ventasPorMes = computeVentasPorMes(ventas);
   const insumosFruta = computeInsumosFruta(insumos, preciosInsumo);
   const productosConCosto = withCostoReal(productos, recetas, preciosInsumo);
 

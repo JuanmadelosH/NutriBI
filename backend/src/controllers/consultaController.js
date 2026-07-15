@@ -1,6 +1,7 @@
 const aiService = require('../services/aiService');
 const dbService = require('../services/dbService');
 const validateSQL = require('../middleware/validateSQL');
+const { guardar } = require('../routes/consultasIa');
 
 const responderConsulta = async (req, res) => {
   try {
@@ -8,10 +9,6 @@ const responderConsulta = async (req, res) => {
 
     if (!pregunta || !pregunta.trim()) {
       return res.status(400).json({ error: 'La pregunta es requerida.' });
-    }
-
-    if (pregunta.toLowerCase().includes('hola') || pregunta.toLowerCase().includes('adios') || pregunta.toLowerCase().includes('saludo') || pregunta.toLowerCase().includes('despedida') || pregunta.toLowerCase().includes('como estas')) {
-      return res.json({ respuesta: await aiService.generaSaludoDespedida(pregunta)});
     }
 
     const sql = await aiService.generarSQL(pregunta);
@@ -23,6 +20,8 @@ const responderConsulta = async (req, res) => {
     const datos = await dbService.ejecutarConsulta(sql);
 
     const respuesta = await aiService.generarExplicacion(pregunta, datos);
+
+    guardar(pregunta, sql, respuesta, req.usuario.id);
 
     res.json({ sql, datos, respuesta });
   } catch (error) {

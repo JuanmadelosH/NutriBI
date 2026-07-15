@@ -6,35 +6,52 @@ const escribirVentas = authorize('admin', 'operacion');
 
 const getAll = async (req, res) => {
   const rows = await db.ejecutarConsulta(`
-    SELECT v.*, c.nombre AS cliente_nombre, u.nombre AS usuario_nombre
+    SELECT
+      v.id_venta, v.fecha, v.id_cliente, v.id_usuario, v.total,
+      dv.id_producto, dv.cantidad, dv.precio_unitario, dv.costo_unitario,
+      dv.subtotal AS monto_total,
+      p.nombre AS producto,
+      c.nombre AS cliente
     FROM ventas v
+    JOIN detalle_ventas dv ON v.id_venta = dv.id_venta
+    JOIN productos p ON dv.id_producto = p.id_producto
     JOIN clientes c ON v.id_cliente = c.id_cliente
-    JOIN usuarios u ON v.id_usuario = u.id_usuario
-    ORDER BY v.fecha DESC
+    ORDER BY v.fecha DESC, v.id_venta
   `);
   res.json(rows);
 };
 
 const getById = async (req, res) => {
   const [venta] = await db.ejecutarConsulta(`
-    SELECT v.*, c.nombre AS cliente_nombre, u.nombre AS usuario_nombre
+    SELECT
+      v.*, dv.id_producto, dv.cantidad, dv.precio_unitario, dv.costo_unitario,
+      dv.subtotal AS monto_total,
+      p.nombre AS producto,
+      c.nombre AS cliente
     FROM ventas v
+    JOIN detalle_ventas dv ON v.id_venta = dv.id_venta
+    JOIN productos p ON dv.id_producto = p.id_producto
     JOIN clientes c ON v.id_cliente = c.id_cliente
-    JOIN usuarios u ON v.id_usuario = u.id_usuario
     WHERE v.id_venta = ?
   `, [req.params.id]);
   if (!venta) return res.status(404).json({ error: 'Venta no encontrada.' });
-  const detalle = await db.ejecutarConsulta(`
-    SELECT dv.*, p.nombre AS producto_nombre
-    FROM detalle_ventas dv
-    JOIN productos p ON dv.id_producto = p.id_producto
-    WHERE dv.id_venta = ?
-  `, [req.params.id]);
-  res.json({ ...venta, detalle });
+  res.json(venta);
 };
 
 const crear = async (req, res) => {
-  const { id_cliente, items } = req.body;
+  let { id_cliente, fecha, items } = req.body;
+
+  // Soporte para formato plano (RegistroVentas.jsx): un solo producto
+  if (!items && req.body.id_producto) {
+    items = [{
+      id_producto: req.body.id_producto,
+      cantidad: req.body.cantidad,
+      precio_unitario: req.body.precio_unitario,
+      costo_unitario: req.body.costo_unitario || 0,
+    }];
+    if (!id_cliente) id_cliente = req.body.id_cliente;
+  }
+
   if (!id_cliente || !items || !items.length)
     return res.status(400).json({ error: 'id_cliente e items (array) son requeridos.' });
 
@@ -44,8 +61,8 @@ const crear = async (req, res) => {
       return res.status(400).json({ error: 'Cada item requiere id_producto y cantidad.' });
     const [p] = await db.ejecutarConsulta('SELECT precio_venta FROM productos WHERE id_producto = ?', [item.id_producto]);
     if (!p) return res.status(400).json({ error: `Producto ${item.id_producto} no existe.` });
-    item.precio_unitario = p.precio_venta;
-    item.subtotal = item.cantidad * p.precio_venta;
+    if (!item.precio_unitario) item.precio_unitario = p.precio_venta;
+    item.subtotal = item.cantidad * item.precio_unitario;
     total += item.subtotal;
   }
 
@@ -53,8 +70,8 @@ const crear = async (req, res) => {
   try {
     await conn.beginTransaction();
     const [r] = await conn.execute(
-      'INSERT INTO ventas (fecha, id_cliente, id_usuario, total) VALUES (CURDATE(), ?, ?, ?)',
-      [id_cliente, req.usuario.id, total]
+      'INSERT INTO ventas (fecha, id_cliente, id_usuario, total) VALUES (?, ?, ?, ?)',
+      [fecha || new Date().toISOString().slice(0, 10), id_cliente, req.usuario.id, total]
     );
     for (const item of items) {
       await conn.execute(

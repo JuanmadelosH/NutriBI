@@ -12,6 +12,7 @@ const getPool = async () => {
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
+      decimalNumbers: true,
     });
   }
   return pool;

@@ -1,4 +1,4 @@
-export default function TopBar() {
+export default function TopBar({ usuario, onLogout }) {
   return (
     <div className="topbar">
       <div className="brand">
@@ -9,8 +9,14 @@ export default function TopBar() {
         </div>
       </div>
       <div className="meta">
-        <div><b>Fuente:</b> datos ingresados por la empresa</div>
-        <div><b>Backend:</b> {import.meta.env.VITE_API_URL || 'http://localhost:4000/api'}</div>
+        {usuario && (
+          <div className="user-info">
+            <span className="user-name">{usuario.nombre}</span>
+            <span className="user-role">{usuario.rol}</span>
+            <button className="btn-logout" onClick={onLogout} title="Cerrar sesión">Salir</button>
+          </div>
+        )}
+        <div><b>Backend:</b> {import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}</div>
       </div>
     </div>
   );

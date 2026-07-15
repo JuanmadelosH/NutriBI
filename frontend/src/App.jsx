@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from './api/client';
+import Login from './components/Login';
 import TopBar from './components/TopBar';
 import Tabs from './components/Tabs';
 import ErrorBanner from './components/ErrorBanner';
@@ -13,20 +14,38 @@ import Datos from './components/Datos';
 const VACIO = { productos: [], insumos: [], preciosInsumo: [], recetas: [], clientes: [], ventas: [], compras: [] };
 
 export default function App() {
+  const [usuario, setUsuario] = useState(() => {
+    const stored = localStorage.getItem('usuario');
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [tab, setTab] = useState('panel');
   const [data, setData] = useState(VACIO);
   const [consultas, setConsultas] = useState([]);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(true);
 
+  function handleLogin(user, tk) {
+    setUsuario(user);
+    setToken(tk);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    setUsuario(null);
+    setToken(null);
+  }
+
   const cargarTodo = useCallback(async () => {
     try {
       setError(null);
-      const [productos, insumos, preciosInsumo, recetas, clientes, ventas, compras] = await Promise.all([
+      setCargando(true);
+      const [productos, insumos, preciosInsumo, recetas, clientes, ventas, compras, ventasPorMes] = await Promise.all([
         api.getProductos(), api.getInsumos(), api.getPreciosInsumo(), api.getRecetas(),
-        api.getClientes(), api.getVentas(), api.getCompras(),
+        api.getClientes(), api.getVentas(), api.getCompras(), api.getVentasPorMes(),
       ]);
-      setData({ productos, insumos, preciosInsumo, recetas, clientes, ventas, compras });
+      setData({ productos, insumos, preciosInsumo, recetas, clientes, ventas, compras, ventasPorMes });
     } catch (err) {
       setError(`No se pudo conectar con el backend (${err.message}). Verifica que el servidor esté corriendo y que VITE_API_URL apunte a la URL correcta.`);
     } finally {
@@ -35,19 +54,36 @@ export default function App() {
   }, []);
 
   const cargarConsultas = useCallback(async () => {
-    try { setConsultas(await api.getConsultasIA()); } catch { /* opcional: el chat funciona igual sin bitácora */ }
+    try { setConsultas(await api.getConsultasIA()); } catch { /* opcional */ }
   }, []);
 
-  useEffect(() => { cargarTodo(); cargarConsultas(); }, [cargarTodo, cargarConsultas]);
+  useEffect(() => {
+    if (token) {
+      cargarTodo();
+      cargarConsultas();
+    } else {
+      setCargando(false);
+    }
+  }, [token, cargarTodo, cargarConsultas]);
+
+  if (!token) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   const hayDatos = data.productos.length > 0 || data.ventas.length > 0;
 
   return (
     <div className="app">
-      <TopBar />
+      <TopBar usuario={usuario} onLogout={handleLogout} />
       <Tabs active={tab} onChange={setTab} />
 
       <ErrorBanner message={error} onRetry={cargarTodo} />
+
+      {cargando && (
+        <div className="banner">
+          <p>Cargando datos del servidor…</p>
+        </div>
+      )}
 
       {!error && !cargando && !hayDatos && (
         <div className="banner">
