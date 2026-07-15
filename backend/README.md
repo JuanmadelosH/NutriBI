@@ -1,120 +1,105 @@
-# Backend — Persona B
+# Backend — NutriBI API
+
+API REST de BI conversacional para NutriCampo S.A.S.
 
 ## Stack
-Node.js + Express + MySQL + Gemini API + JWT
 
-## Tareas realizadas
+Node.js + Express 5 + MySQL + Gemini API + JWT + bcrypt
 
-### Día 1
-- [x] Inicializar proyecto con `npm init`
-- [x] Instalar dependencias: `express`, `cors`, `dotenv`, `mysql2`, `nodemon`
-- [x] Crear `src/index.js` — servidor Express
-- [x] Crear `src/routes/consulta.js` — ruta POST /api/consulta
-- [x] Crear `src/controllers/consultaController.js` — lógica del endpoint
-- [x] Crear `src/services/aiService.js` — integración con Gemini API
-- [x] Crear `src/services/dbService.js` — conexión MySQL
-- [x] Crear `src/middleware/validateSQL.js` — validación solo SELECT
-- [x] Crear `.env` con credenciales reales
-- [x] Endpoint funcional con BD real + IA
+## Estado
 
-### Día 2
-- [x] Integrar Gemini API (Text-to-SQL)
-- [x] Pipeline: pregunta → SQL → ejecutar → datos + explicación
-- [x] Pruebas con base de datos real
-- [x] Cache de esquema BD
-- [x] Circuit breaker + retry exponential backoff
-- [x] Modo offline con consultas predefinidas
+Completado. 22 endpoints funcionales con autenticación JWT, autorización por roles, consulta IA vía Gemini, CRUD completo, reportes y exportación CSV.
 
-### Día 3
-- [x] Autenticación JWT (login)
-- [x] Autorización por roles (admin, operacion, contador)
-- [x] CRUD completo para todas las tablas
-- [x] Seguridad: solo SELECT en consultas IA
-- [x] Documentación de la API
+## Instalación
 
-## Endpoints
+```bash
+cd backend
+npm install
+cp .env.example .env
+# Editar credenciales en .env
+npm run dev
+```
+
+Servidor en `http://localhost:3000`
+
+## Variables de Entorno
+
+```
+GEMINI_API_KEY=tu_key_de_gemini
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=tu_password
+DB_NAME=nutribi
+AI_MODEL=gemini-2.0-flash
+JWT_SECRET=tu_secreto_jwt
+PORT=3000
+```
+
+## Estructura
+
+```
+src/
+├── index.js               # Entry point, monta rutas
+├── controllers/
+│   ├── authController.js  # Login JWT
+│   └── consultaController.js  # Orquestación IA → SQL → datos → explicación
+├── middleware/
+│   ├── auth.js            # authenticate + authorize (roles)
+│   └── validateSQL.js     # Validación solo SELECT
+├── services/
+│   ├── aiService.js       # Gemini API + saludos
+│   ├── dbService.js       # Pool MySQL + esquema
+│   └── predefinedQueries.js  # 7 consultas offline
+└── routes/                # 15 routers (ver tabla completa abajo)
+```
+
+## Endpoints Completos
 
 ### Autenticación
-
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| POST | `/api/login` | ❌ | Login con correo + password. Devuelve JWT |
+| POST | `/api/login` | ❌ | Login con correo + password. Devuelve `{ token, usuario }` |
 
 ### Consulta IA
-
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| POST | `/api/consulta` | JWT | Pregunta en lenguaje natural → SQL + datos + explicación |
+| POST | `/api/consulta` | JWT | Pregunta natural → `{ sql, datos, respuesta }` |
+| POST | `/api/asistente` | JWT | Alias de `/api/consulta` |
 
-### CRUD - Productos
-
-| Método | Ruta | Roles | Descripción |
-|--------|------|-------|-------------|
-| GET | `/api/productos` | Todos | Listar productos |
-| GET | `/api/productos/:id` | Todos | Producto por ID |
-| POST | `/api/productos` | admin | Crear producto |
-| PUT | `/api/productos/:id` | admin | Actualizar producto |
-| DELETE | `/api/productos/:id` | admin | Eliminar producto |
-
-### CRUD - Clientes
-
-| Método | Ruta | Roles | Descripción |
-|--------|------|-------|-------------|
-| GET | `/api/clientes` | Todos | Listar clientes |
-| GET | `/api/clientes/:id` | Todos | Cliente por ID |
-| POST | `/api/clientes` | admin | Crear cliente |
-| PUT | `/api/clientes/:id` | admin | Actualizar cliente |
-| DELETE | `/api/clientes/:id` | admin | Eliminar cliente |
-
-### CRUD - Ventas
-
-| Método | Ruta | Roles | Descripción |
-|--------|------|-------|-------------|
-| GET | `/api/ventas` | Todos | Listar ventas |
-| GET | `/api/ventas/:id` | Todos | Venta por ID (con detalle) |
-| POST | `/api/ventas` | admin, operacion | Crear venta (con items) |
-| DELETE | `/api/ventas/:id` | admin | Eliminar venta |
-
-### CRUD - Compras
-
-| Método | Ruta | Roles | Descripción |
-|--------|------|-------|-------------|
-| GET | `/api/compras` | Todos | Listar compras |
-| GET | `/api/compras/:id` | Todos | Compra por ID (con detalle) |
-| POST | `/api/compras` | admin, contador | Registrar compra (con items) |
-| DELETE | `/api/compras/:id` | admin | Eliminar compra |
-
-### CRUD - Insumos
-
-| Método | Ruta | Roles | Descripción |
-|--------|------|-------|-------------|
-| GET | `/api/insumos` | Todos | Listar insumos |
-| GET | `/api/insumos/:id` | Todos | Insumo por ID |
-| POST | `/api/insumos` | admin, contador | Crear insumo |
-| PUT | `/api/insumos/:id` | admin, contador | Actualizar insumo |
-| DELETE | `/api/insumos/:id` | admin | Eliminar insumo |
-
-### CRUD - Usuarios
-
-| Método | Ruta | Roles | Descripción |
-|--------|------|-------|-------------|
-| GET | `/api/usuarios` | admin | Listar usuarios |
-| GET | `/api/usuarios/:id` | admin | Usuario por ID |
-| POST | `/api/usuarios` | admin | Crear usuario (con password) |
-| PUT | `/api/usuarios/:id` | admin | Actualizar usuario |
-| DELETE | `/api/usuarios/:id` | admin | Eliminar usuario |
-
-### Health
-
+### Reportes
 | Método | Ruta | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/` | ❌ | Health check |
+| GET | `/api/kpis` | JWT | KPIs del mes actual |
+| GET | `/api/alertas` | JWT | Alertas de insumos y ventas |
+| GET | `/api/ventas-por-mes` | JWT | Ventas agregadas por mes |
+| GET | `/api/consultas-ia` | JWT | Historial de consultas IA del usuario autenticado |
+| GET | `/api/costeo/producto/:id?fecha=` | JWT | Costo unitario de un producto según receta + precios insumos |
+| GET | `/api/exportar/ventas.csv` | JWT | Exportar ventas a CSV |
+| GET | `/api/exportar/compras.csv` | JWT | Exportar compras a CSV |
 
-## Contrato de consulta IA
+### CRUD
+
+| Recurso | GET | GET/:id | POST | PUT | DELETE |
+|---------|-----|---------|------|-----|--------|
+| `/api/productos` | Todos | Todos | admin | admin | admin |
+| `/api/clientes` | Todos | Todos | admin | admin | admin |
+| `/api/ventas` | Todos | Todos | admin/operacion | — | admin |
+| `/api/compras` | Todos | Todos | admin/contador | — | admin |
+| `/api/insumos` | Todos | Todos | admin/contador | admin/contador | admin |
+| `/api/precios-insumo` | Todos | — | admin/contador | — | admin |
+| `/api/recetas` | Todos | — | admin/contador | — | admin |
+| `/api/usuarios` | admin | admin | admin | admin | admin |
+
+> Todos requieren header: `Authorization: Bearer <token>`
+
+## Contrato de Consulta IA
 
 ```
 POST /api/consulta
+Content-Type: application/json
 Authorization: Bearer <token>
+
+Request:
 { "pregunta": "¿cuál es mi producto más rentable?" }
 
 Response 200:
@@ -134,7 +119,7 @@ Response 500:
 { "error": "Ocurrió un error al procesar tu consulta." }
 ```
 
-## Credenciales de prueba
+## Credenciales de Prueba
 
 | Usuario | Correo | Password | Rol |
 |---------|--------|----------|-----|
@@ -144,9 +129,16 @@ Response 500:
 
 ## Seguridad
 
-- [x] API key en `.env` (nunca subir a GitHub)
-- [x] Validar que el SQL solo contenga SELECT
+- [x] API key en `.env` (excluido de git)
+- [x] Validación SQL solo SELECT en consultas IA
 - [x] JWT con expiración de 8 horas
 - [x] Autorización por roles en cada endpoint
-- [ ] Rate limiting (pendiente)
-- [x] Passwords hasheados con bcrypt
+- [x] Passwords hasheados con bcrypt (salt 10)
+- [x] Queries parametrizadas (mysql2/promise)
+
+## Mejoras Futuras
+
+- [ ] Rate limiting en endpoint IA (`express-rate-limit`)
+- [ ] Cache de consultas frecuentes
+- [ ] Paginación en endpoints CRUD
+- [ ] WebSocket para actualizaciones en tiempo real

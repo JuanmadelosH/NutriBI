@@ -1,52 +1,48 @@
-# Base de Datos — Persona C
+# Base de Datos — NutriBI
+
+Esquema MySQL para el ecosistema BI-GenIA NutriCampo.
 
 ## Stack
-MySQL + MySQL Workbench
 
-## Tareas
+MySQL 8 + MySQL Workbench
 
-### Día 1
-- [ ] Crear `database/schema.sql` con las 8 tablas:
+## Estado
 
-### Tablas
+Completado. 10 tablas con datos de prueba realistas (8 productos, 10 clientes, 30 ventas, 16 compras, 24 insumos, 8 recetas, 3 usuarios).
 
-| # | Tabla | Descripción | Columnas clave |
-|---|-------|-------------|----------------|
-| 1 | `productos` | Catálogo de productos | id, nombre, tipo, precio_venta, costo_produccion |
-| 2 | `clientes` | Clientes B2B | id, nombre, tipo_cliente, ciudad, telefono |
-| 3 | `ventas` | Facturas de venta | id, cliente_id, fecha, total, estado |
-| 4 | `detalle_ventas` | Productos vendidos | id, venta_id, producto_id, cantidad, precio_unitario, subtotal |
-| 5 | `compras` | Compras a proveedores | id, proveedor, fecha, total |
-| 6 | `detalle_compras` | Insumos comprados | id, compra_id, insumo, cantidad, costo_unitario |
-| 7 | `costos_insumos` | Histórico precios materia prima | id, insumo, fecha, precio_kilo |
-| 8 | `usuarios` | Usuarios del sistema | id, nombre, email, rol |
+## Estructura
 
-- [ ] Escribir `database/seed.sql` con datos de prueba:
-  - 5 productos (pulpa de mango, mora, maracuyá, mermelada, base concentrada)
-  - 10 clientes B2B
-  - 50 ventas con detalle
-  - Compras y costos históricos
-- [ ] Ejecutar schema + seed en MySQL Workbench
-- [ ] Probar 3 consultas manuales
+| # | Tabla | Descripción | Filas Seed |
+|---|-------|-------------|-----------|
+| 1 | `usuarios` | Usuarios del sistema con roles | 3 |
+| 2 | `productos` | Catálogo de productos (pulpa, mermelada, base) | 8 |
+| 3 | `clientes` | Clientes B2B con tipo y ciudad | 10 |
+| 4 | `costos_insumos` | Histórico de precios de materia prima por período | 24 |
+| 5 | `ventas` | Cabecera de factura de venta | 30 |
+| 6 | `detalle_ventas` | Líneas de cada factura con costeo | 71 |
+| 7 | `compras` | Cabecera de compra a proveedores | 16 |
+| 8 | `detalle_compras` | Insumos comprados por compra | 27 |
+| 9 | `recetas` | Bill of Materials (producto ↔ insumo + cantidad) | 28 |
+| 10 | `historial_consultas` | Trazabilidad de consultas IA | 0 (se llena en uso) |
 
-### Día 2
-- [ ] Ayudar a Backend con consultas complejas (JOINs, GROUP BY)
-- [ ] Probar preguntas de negocio 1-4
+## Instalación
 
-### Día 3
-- [ ] Prueba integral (preguntas 1-7)
-- [ ] Backup del schema
-- [ ] Documentación de tablas y relaciones
+```bash
+# En MySQL Workbench o línea de comandos:
+source database/Schema.sql
+source database/Seed.sql
+```
 
-## Preguntas de negocio
+La base de datos `nutribi` se crea automáticamente en Schema.sql.
 
-1. ¿Cuál es mi producto más rentable?
-2. ¿Qué producto redujo más su margen este mes?
-3. ¿Cómo han variado las ventas en los últimos 3 meses?
-4. ¿Qué cliente genera más ingresos?
-5. ¿Cuál es el margen de ganancia por línea de producto?
-6. ¿Qué insumo ha subido más de precio este mes?
-7. ¿Cuántas unidades se vendieron la semana pasada?
+## Diagrama de Relaciones
+
+- `ventas` → `clientes` (FK), `usuarios` (FK)
+- `detalle_ventas` → `ventas` (FK CASCADE), `productos` (FK)
+- `compras` → `usuarios` (FK)
+- `detalle_compras` → `compras` (FK CASCADE), `costos_insumos` (FK)
+- `recetas` → `productos` (FK CASCADE), `costos_insumos` (FK)
+- `historial_consultas` → `usuarios` (FK)
 
 ## Conexión
 
@@ -54,5 +50,10 @@ MySQL + MySQL Workbench
 Host: localhost
 Puerto: 3306
 Base de datos: nutribi
-Usuario: root
+Usuario: root (configurable en backend/.env)
 ```
+
+## Archivos
+
+- `Schema.sql` — CREATE DATABASE + 10 CREATE TABLE con FK y ENGINE InnoDB
+- `Seed.sql` — TRUNCATE + INSERT con datos realistas y verificación final de conteo
