@@ -17,15 +17,15 @@ const getPool = async () => {
   return pool;
 };
 
-const ejecutarConsulta = async (sql) => {
-  const pool = await getPool();
-  const [rows] = await pool.execute(sql);
+const ejecutarConsulta = async (sql, params = []) => {
+  const p = await getPool();
+  const [rows] = await p.execute(sql, params);
   return rows;
 };
 
 const obtenerEsquema = async () => {
-  const pool = await getPool();
-  const [tablas] = await pool.execute(`
+  const p = await getPool();
+  const [tablas] = await p.execute(`
     SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_KEY
     FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = ?
@@ -43,4 +43,4 @@ const obtenerEsquema = async () => {
     .join('\n\n');
 };
 
-module.exports = { ejecutarConsulta, obtenerEsquema };
+module.exports = { ejecutarConsulta, obtenerEsquema, getPool };
