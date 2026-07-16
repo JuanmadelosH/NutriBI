@@ -1,0 +1,71 @@
+# render.yaml — BI-GenIA NutriCampo (NutriBI)
+# Despliegue automatizado en Render
+# Requisitos:
+#   1. Un servicio MySQL externo (Aiven, PlanetScale, o Render MySQL add-on)
+#   2. Una API key de Google Gemini (ai.google.dev)
+# ──────────────────────────────────────────
+
+services:
+
+  # ─── Backend (API REST Express) ───
+  - type: web_service
+    name: nutribi-backend
+    runtime: node
+    region: ohio
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /
+
+    envVars:
+      # ── Base de datos (crear primero) ──
+      - key: DB_HOST
+        sync: false   # lo rellena el usuario desde el Dashboard
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: nutribi
+
+      # ── Google Gemini ──
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # ── Modelo (opcional) ──
+      - key: AI_MODEL
+        value: gemini-2.0-flash
+
+      # ── JWT ──
+      - key: JWT_SECRET
+        generateValue: true   # Render genera un secreto automáticamente
+
+      # ── CORS: permite llamadas desde el frontend ──
+      - key: CORS_ORIGIN
+        sync: false   # ej: https://nutribi-frontend.onrender.com
+
+
+  # ─── Frontend (React + Vite — sitio estático) ───
+  - type: static_site
+    name: nutribi-frontend
+    runtime: node
+    region: ohio
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    pullRequestPreviewsEnabled: false
+
+    envVars:
+      # URL del backend (se obtiene tras crear el Web Service)
+      - key: VITE_API_URL
+        sync: false   # ej: https://nutribi-backend.onrender.com/api
+
+    # Redirigir todas las rutas a index.html (para SPA)
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-store
+
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
